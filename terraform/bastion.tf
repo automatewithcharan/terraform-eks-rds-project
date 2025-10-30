@@ -1,6 +1,14 @@
 ##########################
 # Security Group for Bastion
 ##########################
+data "http" "my_ip" {
+  url = "https://checkip.amazonaws.com/"
+}
+
+locals {
+  my_public_ip = "${chomp(data.http.my_ip.response_body)}/32"
+}
+
 resource "aws_security_group" "bastion_sg" {
   name        = "bastion-sg"
   description = "Allow SSH access to bastion"
@@ -12,7 +20,7 @@ resource "aws_security_group" "bastion_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["49.207.202.130/32"] # replace with your IP, e.g. "103.47.23.101/32"
+    cidr_blocks = local.my_public_ip
   }
 
   # Allow all outbound
