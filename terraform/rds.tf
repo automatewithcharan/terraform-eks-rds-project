@@ -6,7 +6,7 @@
 resource "random_password" "db_password" {
   length           = 20
   special          = true
-  override_characters = "!#$%^*()-_=+[]{}"
+  override_special = "!#$%^*()-_=+[]{}"
 }
 
 # Store creds in Secrets Manager (interview-friendly)
