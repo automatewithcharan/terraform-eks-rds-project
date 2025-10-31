@@ -16,7 +16,7 @@ resource "aws_secretsmanager_secret" "db_secret" {
 }
 
 resource "aws_secretsmanager_secret_version" "db_secret_value" {
-  secret_id     = aws_secretsmanager_secret.db_secret.id
+  secret_id = aws_secretsmanager_secret.db_secret.id
   secret_string = jsonencode({
     username = "appuser"
     password = random_password.db_password.result
@@ -25,7 +25,7 @@ resource "aws_secretsmanager_secret_version" "db_secret_value" {
 
 # Subnet group: tells RDS which (private) subnets to use
 resource "aws_db_subnet_group" "db_subnets" {
-  name       = "app-db-subnets"
+  name = "app-db-subnets"
   subnet_ids = [
     aws_subnet.private_subnet_1.id,
     aws_subnet.private_subnet_2.id
@@ -41,9 +41,9 @@ resource "aws_security_group" "rds_sg" {
 
   # Allow from private subnets (adjust if your CIDRs differ)
   ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
+    from_port = 5432
+    to_port   = 5432
+    protocol  = "tcp"
     cidr_blocks = [
       "10.0.3.0/24", # private_subnet_1
       "10.0.4.0/24"  # private_subnet_2
@@ -51,12 +51,12 @@ resource "aws_security_group" "rds_sg" {
   }
 
   # (Optional) Uncomment to allow bastion to psql for debugging
-  # ingress {
-  #   from_port       = 5432
-  #   to_port         = 5432
-  #   protocol        = "tcp"
-  #   security_groups = [aws_security_group.bastion_sg.id]
-  # }
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.bastion_sg.id]
+  }
 
   egress {
     from_port   = 0
@@ -70,41 +70,41 @@ resource "aws_security_group" "rds_sg" {
 
 # (Optional) Parameter group — keep defaults for now
 resource "aws_db_parameter_group" "pg_params" {
-  name   = "app-postgres-params"
-  family = "postgres15"
+  name        = "app-postgres-params"
+  family      = "postgres15"
   description = "Basic PG params for app"
 }
 
 # The RDS Instance
 resource "aws_db_instance" "postgres" {
-  identifier                 = "app-postgres"
-  engine                     = "postgres"
-  engine_version             = "15.6"          # stable; adjust if region supports different exact patch
-  instance_class             = "db.t3.micro"   # cheap for labs
-  allocated_storage          = 20
-  storage_type               = "gp3"
+  identifier        = "app-postgres"
+  engine            = "postgres"
+  engine_version    = "15.14"       # stable; adjust if region supports different exact patch
+  instance_class    = "db.t3.micro" # cheap for labs
+  allocated_storage = 20
+  storage_type      = "gp3"
 
   # Credentials
-  username                   = "appuser"
-  password                   = random_password.db_password.result
+  username = "appuser"
+  password = random_password.db_password.result
 
   # Networking
-  db_subnet_group_name       = aws_db_subnet_group.db_subnets.name
-  vpc_security_group_ids     = [aws_security_group.rds_sg.id]
-  publicly_accessible        = false
-  multi_az                   = false           # keep cost low in lab
+  db_subnet_group_name   = aws_db_subnet_group.db_subnets.name
+  vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  publicly_accessible    = false
+  multi_az               = false # keep cost low in lab
 
   # Safety / Ops
-  deletion_protection        = false           # lab only; true in prod
-  skip_final_snapshot        = true            # lab only; avoid snapshot charges
-  backup_retention_period    = 1               # short backups (increase in prod)
+  deletion_protection        = false # lab only; true in prod
+  skip_final_snapshot        = true  # lab only; avoid snapshot charges
+  backup_retention_period    = 1     # short backups (increase in prod)
   auto_minor_version_upgrade = true
   apply_immediately          = true
 
-  parameter_group_name       = aws_db_parameter_group.pg_params.name
+  parameter_group_name = aws_db_parameter_group.pg_params.name
 
   tags = {
-    Name = "app-postgres"
+    Name        = "app-postgres"
     Environment = "lab"
   }
 
