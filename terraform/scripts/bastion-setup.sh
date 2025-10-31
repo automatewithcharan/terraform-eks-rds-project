@@ -12,16 +12,15 @@ sudo yum update -y
 # Install essential packages
 sudo yum install -y unzip tar git jq nmap-ncat tree curl
 
-echo "Checking AWS CLI..."
-if ! command -v aws &>/dev/null; then
-  echo "Installing AWS CLI..."
-  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  unzip awscliv2.zip
-  sudo ./aws/install
-else
-  echo "AWS CLI already installed:"
-  aws --version
-fi
+echo "Removing old AWS CLI v1 if present..."
+sudo rm -f /usr/bin/aws /usr/bin/aws_completer
+sudo rm -rf /usr/local/aws-cli
+
+echo "Installing AWS CLI v2..."
+cd /tmp
+curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip -q awscliv2.zip
+sudo ./aws/install --update
 
 # Install kubectl
 if ! command -v kubectl &>/dev/null; then
